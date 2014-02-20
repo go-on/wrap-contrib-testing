@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-on/rack"
-	"github.com/go-on/rack/helper"
 	"github.com/go-on/wrap"
+	"github.com/go-on/wrap-contrib/helper"
 )
 
 type logger struct{ *log.Logger }
@@ -17,11 +16,11 @@ func (l *logger) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Req
 	// l.Logger.Printf("ResponseWriter: %#v\nRequest: %#v\n", w, r)
 	requestHeaders := fmt.Sprintf("%v", r.Header)
 
-	fake := helper.NewFake(w)
+	buf := helper.NewResponseBuffer()
 
-	in.ServeHTTP(fake, r)
+	in.ServeHTTP(buf, r)
 
-	if fake.HasChanged() {
+	if buf.HasChanged() {
 		l.Printf(`
 -- REQUEST --
 %s %s
@@ -34,19 +33,19 @@ HEADERS
 BODY
 %s
 
-`, r.Method, r.URL.Path, requestHeaders, fake.WHeader, fake.Header(), string(fake.Buffer.Bytes()))
+`, r.Method, r.URL.Path, requestHeaders, buf.Code, buf.Header(), string(buf.Buffer.Bytes()))
 	}
 
-	fake.WriteHeaderTo(w)
-	if fake.WHeader != 0 {
-		w.WriteHeader(fake.WHeader)
+	buf.WriteHeadersTo(w)
+	if buf.Code != 0 {
+		w.WriteHeader(buf.Code)
 	}
 
-	fake.Buffer.WriteTo(w)
+	buf.WriteTo(w)
 }
 
 func (l *logger) Wrap(inner http.Handler) http.Handler {
-	return rack.ServeHandle(l, inner)
+	return wrap.ServeHandle(l, inner)
 }
 
 func LOGGER(prefix string) wrap.Wrapper {

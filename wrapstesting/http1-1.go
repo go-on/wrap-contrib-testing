@@ -3,7 +3,7 @@ package wrapstesting
 import (
 	"net/http"
 
-	"github.com/go-on/rack"
+	"github.com/go-on/wrap"
 )
 
 type http1_1 struct{}
@@ -20,5 +20,5 @@ func (h http1_1) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Req
 }
 
 func (h http1_1) Wrap(in http.Handler) http.Handler {
-	return rack.ServeHandle(h, in)
+	return wrap.ServeHandle(h, in)
 }

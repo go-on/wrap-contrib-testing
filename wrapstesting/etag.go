@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/go-on/rack"
 	"github.com/go-on/wrap"
 	"github.com/go-on/wrap-contrib-testing/methods"
 	"github.com/go-on/wrap-contrib/helper"
@@ -54,7 +52,7 @@ func (e etag) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Reques
 }
 
 func (e etag) Wrap(inner http.Handler) http.Handler {
-	return rack.ServeHandle(e, inner)
+	return wrap.ServeHandle(e, inner)
 }
 
 type ifNoneMatch struct{}

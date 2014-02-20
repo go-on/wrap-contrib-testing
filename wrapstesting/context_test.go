@@ -3,16 +3,12 @@ package wrapstesting
 import (
 	"fmt"
 	"net/http"
+	"testing"
 
 	"github.com/go-on/wrap"
 	"github.com/go-on/wrap-contrib/helper"
 	"github.com/go-on/wrap-contrib/wraps"
-	. "launchpad.net/gocheck"
 )
-
-type contextSuite struct{}
-
-var _ = Suite(&contextSuite{})
 
 type ctx struct {
 	path string
@@ -37,7 +33,7 @@ func check(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("#" + c.path + "#"))
 }
 
-func (s *contextSuite) TestContextHandlerMethod(c *C) {
+func TestContextHandlerMethod(t *testing.T) {
 	r := wrap.New(
 		Context(&blindctx{}),
 		Context(&ctx{}),
@@ -50,29 +46,38 @@ func (s *contextSuite) TestContextHandlerMethod(c *C) {
 	r.ServeHTTP(rw, req)
 	err := helper.AssertResponse(rw, "~/path~#/path#", 200)
 
-	c.Assert(err, Equals, nil)
+	if err != nil {
+		t.Error(err.Error())
+	}
 }
 
-func (s *contextSuite) TestContextUnwrapIdentical(c *C) {
+func TestContextUnwrapIdentical(t *testing.T) {
 	c1 := ctx{path: "x"}
 	c2 := &ctx{}
 
 	err := UnWrap(&c1, &c2)
-	c.Assert(c2.path, Equals, "x")
+
 	if err != nil {
 		panic(err.Error())
 	}
 
+	if c2.path != "x" {
+		t.Errorf("c2.path should be x, but is: %#v", c2.path)
+	}
+
 	c3 := &ctx{}
 	err = UnWrap(c1, &c3)
-	c.Assert(c3.path, Equals, "x")
+
+	if c3.path != "x" {
+		t.Errorf("c3.path should be x, but is: %#v", c3.path)
+	}
 
 	if err != nil {
 		panic(err.Error())
 	}
 }
 
-func (s *contextSuite) TestContextUnwrapNested(c *C) {
+func TestContextUnwrapNested(t *testing.T) {
 	c1 := blindctx{&ctx{path: "x"}}
 	c2 := &ctx{}
 
@@ -80,7 +85,9 @@ func (s *contextSuite) TestContextUnwrapNested(c *C) {
 	if err != nil {
 		panic(err.Error())
 	}
-	c.Assert(c2.path, Equals, "x")
+	if c2.path != "x" {
+		t.Errorf("c2.path should be x, but is: %#v", c2.path)
+	}
 
 	c3 := &ctx{}
 
@@ -88,20 +95,25 @@ func (s *contextSuite) TestContextUnwrapNested(c *C) {
 	if err != nil {
 		panic(err.Error())
 	}
-	c.Assert(c3.path, Equals, "x")
+	if c3.path != "x" {
+		t.Errorf("c3.path should be x, but is: %#v", c3.path)
+	}
 }
 
-func (s *contextSuite) TestContextUnwrapError(c *C) {
+func TestContextUnwrapError(t *testing.T) {
 	_ = fmt.Println
 	c1 := blindctx{}
 	c2 := &ctx{}
 	err := UnWrap(&c1, &c2)
 	// fmt.Println(err.Error())
-	c.Assert(err, NotNil)
-
+	if err == nil {
+		t.Error("unwrap (1) should result in error, but does not")
+	}
 	rw, _ := helper.NewTestRequest("GET", "/path")
 	c1 = blindctx{rw}
 	err = UnWrap(&c1, &c2)
 	// fmt.Println(err.Error())
-	c.Assert(err, NotNil)
+	if err == nil {
+		t.Error("unwrap (2) should result in error, but does not")
+	}
 }

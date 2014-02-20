@@ -3,3 +3,9 @@ go:
   - 1.1
   - 1.2
   - tip
+install:
+  - go get github.com/go-on/wrap
+  - go get github.com/go-on/wrap-contrib/helper
+  - go get github.com/go-on/wrap-contrib/wraps
+  - go get github.com/go-on/wrap-contrib-testing/methods
+  - go get launchpad.net/gocheck

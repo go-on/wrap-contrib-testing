@@ -2,15 +2,11 @@ package wrapstesting
 
 import (
 	"net/http"
+	"testing"
 
 	"github.com/go-on/wrap"
 	"github.com/go-on/wrap-contrib/helper"
-	. "launchpad.net/gocheck"
 )
-
-type deferSuite struct{}
-
-var _ = Suite(&deferSuite{})
 
 func anyway(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`anyway`))
@@ -22,7 +18,7 @@ func (panicker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	panic("don't panic")
 }
 
-func (s *deferSuite) TestDefer(c *C) {
+func TestDefer(t *testing.T) {
 	r := wrap.New(
 		DeferFunc(anyway),
 		wrap.Handler(panicker{}),
@@ -30,5 +26,8 @@ func (s *deferSuite) TestDefer(c *C) {
 	rw, req := helper.NewTestRequest("GET", "/")
 	defer func() { recover() }()
 	r.ServeHTTP(rw, req)
-	helper.AssertResponse(rw, "anyway", 200)
+	err := helper.AssertResponse(rw, "anyway", 200)
+	if err != nil {
+		t.Error(err.Error())
+	}
 }

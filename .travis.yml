@@ -7,5 +7,5 @@ install:
   - go get github.com/go-on/wrap
   - go get github.com/go-on/wrap-contrib/helper
   - go get github.com/go-on/wrap-contrib/wraps
-  - go get github.com/go-on/wrap-contrib-testing/methods
+  - go get github.com/go-on/method
   - go get launchpad.net/gocheck

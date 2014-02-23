@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/go-on/method"
 	"github.com/go-on/wrap"
-	"github.com/go-on/wrap-contrib-testing/methods"
 	"github.com/go-on/wrap-contrib/helper"
 )
 
-var etagMethods = methods.GET | methods.HEAD
+var etagMethods = method.GET | method.HEAD
 
 type etag struct{}
 
@@ -19,7 +20,7 @@ var ETag = etag{}
 func (e etag) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Request) {
 	buf := helper.NewResponseBuffer()
 	in.ServeHTTP(buf, r)
-	m, _ := methods.StringToMethod[r.Method]
+	m, _ := method.StringToMethod[r.Method]
 	b := buf.Body()
 
 	//	if fake.IsOk() && fake.WHeader != 206 {
@@ -46,7 +47,7 @@ func (e etag) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Reques
 	if buf.Code != 0 {
 		w.WriteHeader(buf.Code)
 	}
-	if m != methods.HEAD {
+	if m != method.HEAD {
 		w.Write(b)
 	}
 }
@@ -68,8 +69,8 @@ func (i ifNoneMatch) ServeHandle(in http.Handler, w http.ResponseWriter, r *http
 		return
 	}
 
-	ver, _ := methods.StringToMethod[r.Method]
-	// return 412 for methods other than GET and HEAD
+	ver, _ := method.StringToMethod[r.Method]
+	// return 412 for method other than GET and HEAD
 	if etagMethods&ver == 0 {
 		w.WriteHeader(412) // precondition failed
 		return
@@ -115,7 +116,7 @@ type ifMatch struct {
 	http.Handler
 }
 
-var ifMatchMethods = methods.GET | methods.PUT | methods.DELETE | methods.PATCH
+var ifMatchMethods = method.GET | method.PUT | method.DELETE | method.PATCH
 
 // Wo macht If-Match sinn?
 // Get, Put, Patch, Delete, alle mit ressource
@@ -136,8 +137,8 @@ func (i *ifMatch) Wrap(in http.Handler) (out http.Handler) {
 
 		r.Header.Del("If-Match")
 
-		m, _ := methods.StringToMethod[r.Method]
-		// return 412 for methods other than GET and HEAD
+		m, _ := method.StringToMethod[r.Method]
+		// return 412 for method other than GET and HEAD
 		if ifMatchMethods&m == 0 {
 			// fmt.Println("precondition failed, method", m.String())
 			w.WriteHeader(412) // precondition failed

@@ -20,7 +20,7 @@ func (f *filterBody) Wrap(in http.Handler) (out http.Handler) {
 			return
 		}
 
-		buf := helper.NewResponseBuffer()
+		buf := helper.NewResponseBuffer(w)
 		in.ServeHTTP(buf, r)
 		buf.WriteHeadersTo(w)
 

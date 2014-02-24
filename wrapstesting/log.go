@@ -16,7 +16,7 @@ func (l *logger) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Req
 	// l.Logger.Printf("ResponseWriter: %#v\nRequest: %#v\n", w, r)
 	requestHeaders := fmt.Sprintf("%v", r.Header)
 
-	buf := helper.NewResponseBuffer()
+	buf := helper.NewResponseBuffer(w)
 
 	in.ServeHTTP(buf, r)
 

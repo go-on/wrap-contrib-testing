@@ -18,14 +18,15 @@ type etag struct{}
 var ETag = etag{}
 
 func (e etag) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Request) {
-	buf := helper.NewResponseBuffer()
+	buf := helper.NewResponseBuffer(w)
+	fmt.Printf("in is %T\n", in)
 	in.ServeHTTP(buf, r)
 	m, _ := method.StringToMethod[r.Method]
 	b := buf.Body()
 
 	//	if fake.IsOk() && fake.WHeader != 206 {
 
-	// fmt.Println("Status code", fake.WHeader)
+	fmt.Println("Status code", buf.Code)
 	// set etag only for status code 200
 	if buf.Code == 0 || buf.Code == 200 {
 		var etag string
@@ -38,7 +39,7 @@ func (e etag) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Reques
 			}
 		}
 		if etag != "" && etagMethods&m != 0 {
-			// fmt.Printf("setting ETag to: %#v for  method %s\n", etag, m.String())
+			fmt.Printf("setting ETag to: %#v for  method %s\n", etag, m.String())
 			buf.Header().Set("ETag", etag)
 		}
 	}
@@ -76,7 +77,7 @@ func (i ifNoneMatch) ServeHandle(in http.Handler, w http.ResponseWriter, r *http
 		return
 	}
 
-	buf := helper.NewResponseBuffer()
+	buf := helper.NewResponseBuffer(w)
 	in.ServeHTTP(buf, r)
 
 	// non 2xx returns should ignire If-None-Match
@@ -146,7 +147,7 @@ func (i *ifMatch) Wrap(in http.Handler) (out http.Handler) {
 		}
 
 		// fmt.Println("make head request")
-		buf := helper.NewResponseBuffer()
+		buf := helper.NewResponseBuffer(w)
 		//	r.Method = "HEAD"
 		r2, _ := http.NewRequest("HEAD", r.URL.Path, nil)
 		i.ServeHTTP(buf, r2)

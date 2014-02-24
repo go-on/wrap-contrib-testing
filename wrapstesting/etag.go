@@ -26,7 +26,7 @@ func (e etag) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Reques
 
 	//	if fake.IsOk() && fake.WHeader != 206 {
 
-	fmt.Println("Status code", buf.Code)
+	// fmt.Println("Status code", buf.Code)
 	// set etag only for status code 200
 	if buf.Code == 0 || buf.Code == 200 {
 		var etag string
@@ -39,7 +39,7 @@ func (e etag) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Reques
 			}
 		}
 		if etag != "" && etagMethods&m != 0 {
-			fmt.Printf("setting ETag to: %#v for  method %s\n", etag, m.String())
+			// fmt.Printf("setting ETag to: %#v for  method %s\n", etag, m.String())
 			buf.Header().Set("ETag", etag)
 		}
 	}

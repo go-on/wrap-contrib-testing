@@ -19,7 +19,7 @@ var ETag = etag{}
 
 func (e etag) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Request) {
 	buf := helper.NewResponseBuffer(w)
-	fmt.Printf("in is %T\n", in)
+	// fmt.Printf("in is %T\n", in)
 	in.ServeHTTP(buf, r)
 	m, _ := method.StringToMethod[r.Method]
 	b := buf.Body()

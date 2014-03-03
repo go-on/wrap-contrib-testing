@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/go-on/method"
 	"github.com/go-on/wrap"
@@ -64,6 +65,7 @@ var IfNoneMatch = ifNoneMatch{}
 // see http://www.freesoft.org/CIE/RFC/2068/187.htm
 func (i ifNoneMatch) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Request) {
 	ifnone := r.Header.Get("If-None-Match")
+	ifnone = strings.Trim(ifnone, `"`)
 	// proceed as normal
 	if ifnone == "" {
 		in.ServeHTTP(w, r)
@@ -96,8 +98,9 @@ func (i ifNoneMatch) ServeHandle(in http.Handler, w http.ResponseWriter, r *http
 	// do nothing, but only return the ETag and 304 status
 	// fmt.Printf("fake headers: %#v\n", fake.Header())
 	etag := buf.Header().Get("ETag")
+
 	// fmt.Println("ifnonematch", ifnone, "etag", etag)
-	if (ifnone == "*" && etag != "") || ifnone == `"`+etag+`"` {
+	if (ifnone == "*" && etag != "") || ifnone == etag {
 		w.WriteHeader(304)
 		return
 	}
@@ -131,6 +134,8 @@ func (i *ifMatch) Wrap(in http.Handler) (out http.Handler) {
 		// fmt.Printf("ifmatch: %#v\n", ifmatch)
 
 		// proceed as normal
+		ifmatch = strings.Trim(ifmatch, `"`)
+
 		if ifmatch == "" || ifmatch == "*" {
 			in.ServeHTTP(w, r)
 			return

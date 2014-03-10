@@ -2,7 +2,7 @@ package wrapstesting
 
 import (
 	"fmt"
-	"github.com/go-on/wrap"
+
 	// "fmt"
 	"net/http"
 	"reflect"
@@ -129,29 +129,20 @@ func UnWrap(src http.ResponseWriter, target interface{}) error {
 	return unWrap(src, reflect.ValueOf(target))
 }
 
-type context struct {
-	Type reflect.Type
-}
+// if it returns nil, no further processing is done
+// the returned responsewriter must be a pointer to some struct
+// that inherits from http.ResponseWriter
+// if the given function wraps the given ResponseWriter, it must
+// set the inner ResponseWriter by itself
+type Context func(http.ResponseWriter, *http.Request) http.ResponseWriter
 
-func Context(ty http.ResponseWriter) wrap.Wrapper {
-	vl := reflect.ValueOf(ty)
-	if vl.Kind() == reflect.Ptr {
-		ptrTarget := reflect.Indirect(vl)
-		if ptrTarget.Kind() != reflect.Struct {
-			panic("context must be a struct or a pointer to a struct")
-		}
-		return context{ptrTarget.Type()}
-	}
-	if vl.Kind() != reflect.Struct {
-		panic("context must be a struct or a pointer to a struct")
-	}
-	return context{vl.Type()}
-}
-
-func (c context) Wrap(in http.Handler) (out http.Handler) {
+func (c Context) Wrap(in http.Handler) (out http.Handler) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		val := reflect.New(c.Type)
-		val.Elem().FieldByName("ResponseWriter").Set(reflect.ValueOf(w))
-		in.ServeHTTP(val.Interface().(http.ResponseWriter), r)
+		wr := c(w, r)
+		if wr != nil {
+			// we don't set automatically
+			//reflect.ValueOf(wr).Elem().FieldByName("ResponseWriter").Set(reflect.ValueOf(w))
+			in.ServeHTTP(wr, r)
+		}
 	})
 }

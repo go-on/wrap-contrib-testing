@@ -144,7 +144,7 @@ func (i *ifMatch) Wrap(in http.Handler) (out http.Handler) {
 		r.Header.Del("If-Match")
 
 		m, _ := method.StringToMethod[r.Method]
-		// return 412 for method other than GET and HEAD
+		// return 412 for method other than GET and PUT and DELETE and PATCH
 		if ifMatchMethods&m == 0 {
 			// fmt.Println("precondition failed, method", m.String())
 			w.WriteHeader(412) // precondition failed
@@ -161,14 +161,14 @@ func (i *ifMatch) Wrap(in http.Handler) (out http.Handler) {
 		var etag string
 		if buf.IsOk() {
 			etag = buf.Header().Get("ETag")
-			// fmt.Println("etag", etag)
+			// fmt.Printf("etag %#v ifmatch %#v", etag, ifmatch)
 		}
 
 		// fmt.Printf("returned to ifmatch: %#v\n", ifmatch)
 		// fmt.Printf("fake headers: %#v\n", fake.Header())
 		// fmt.Printf("real headers: %#v\n", w.Header())
 
-		if etag == "" || `"`+etag+`"` != ifmatch {
+		if etag == "" || etag != ifmatch {
 			if etag != "" && etagMethods&m != 0 {
 				w.Header().Set("ETag", etag)
 			}

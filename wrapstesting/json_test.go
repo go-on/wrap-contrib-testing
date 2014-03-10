@@ -14,6 +14,10 @@ type jsonSuite struct{}
 
 var _ = Suite(&jsonSuite{})
 
+func mkJsonCtx(rw http.ResponseWriter, req *http.Request) http.ResponseWriter {
+	return &jsonCtx{ResponseWriter: rw}
+}
+
 type jsonCtx struct {
 	Path                string
 	http.ResponseWriter `json:"-"`
@@ -26,7 +30,7 @@ func (j *jsonCtx) Prepare(w http.ResponseWriter, r *http.Request) {
 func (s *jsonSuite) TestJson(c *C) {
 
 	r := wrap.New(
-		Context(&jsonCtx{}),
+		Context(mkJsonCtx),
 		wraps.Before(HandlerMethod((*jsonCtx).Prepare)),
 		Json(&jsonCtx{}),
 	)

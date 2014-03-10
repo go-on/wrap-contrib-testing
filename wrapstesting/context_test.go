@@ -19,12 +19,24 @@ type blindctx struct {
 	http.ResponseWriter
 }
 
+func mkBlindCtx(rw http.ResponseWriter, req *http.Request) http.ResponseWriter {
+	return &blindctx{ResponseWriter: rw}
+}
+
+func mkCtx(rw http.ResponseWriter, req *http.Request) http.ResponseWriter {
+	return &ctx{ResponseWriter: rw}
+}
+
 func (c *ctx) Prepare(w http.ResponseWriter, r *http.Request) {
 	c.path = r.URL.Path
 }
 
 func (c *ctx) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("~" + c.path + "~"))
+}
+
+func (c *ctx) check(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("#" + c.path + "#"))
 }
 
 func check(w http.ResponseWriter, r *http.Request) {
@@ -35,9 +47,10 @@ func check(w http.ResponseWriter, r *http.Request) {
 
 func TestContextHandlerMethod(t *testing.T) {
 	r := wrap.New(
-		Context(&blindctx{}),
-		Context(&ctx{}),
-		wraps.After(http.HandlerFunc(check)),
+		Context(mkBlindCtx),
+		Context(mkCtx),
+		//wraps.After(http.HandlerFunc(check)),
+		wraps.After(HandlerMethod((*ctx).check)),
 		wraps.Before(HandlerMethod((*ctx).Prepare)),
 		wrap.Handler(HandlerMethod((*ctx).ServeHTTP)),
 	)
@@ -49,6 +62,7 @@ func TestContextHandlerMethod(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+
 }
 
 func TestContextUnwrapIdentical(t *testing.T) {
@@ -116,4 +130,23 @@ func TestContextUnwrapError(t *testing.T) {
 	if err == nil {
 		t.Error("unwrap (2) should result in error, but does not")
 	}
+}
+
+func TestContext2HandlerMethod(t *testing.T) {
+	r := wrap.New(
+		Context(mkBlindCtx),
+		Context(mkCtx),
+		wraps.After(http.HandlerFunc(check)),
+		wraps.Before(HandlerMethod((*ctx).Prepare)),
+		wrap.Handler(HandlerMethod((*ctx).ServeHTTP)),
+	)
+
+	rw, req := helper.NewTestRequest("GET", "/path")
+	r.ServeHTTP(rw, req)
+	err := helper.AssertResponse(rw, "~/path~#/path#", 200)
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+
 }

@@ -26,9 +26,13 @@ func (c *_handle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("~" + c.path + "~"))
 }
 
+func mkHandle(rw http.ResponseWriter, req *http.Request) http.ResponseWriter {
+	return _handle{ResponseWriter: rw}
+}
+
 func (s *handleSuite) TestContextHandlerMethod(c *C) {
 	r := wrap.New(
-		Context(_handle{}),
+		Context(mkHandle),
 		wraps.Before(HandlerMethod((*_handle).Prepare)),
 		ResponseWriterHandler,
 	)

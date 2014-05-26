@@ -1,7 +1,7 @@
 {
   "github.com/go-on/wrap-contrib/helper": {
     "VCM": "git",
-    "Rev": "7d158f2dc1bdaf8cd488b9a32e469b8db44c1d07",
+    "Rev": "985c079db37fc7f55cf683ee94f56c1ceb948d19",
     "Parent": "github.com/go-on/wrap-contrib-testing/wrapstesting",
     "Tag": "",
     "RepoRoot": "github.com/go-on/wrap-contrib"

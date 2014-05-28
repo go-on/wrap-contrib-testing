@@ -41,7 +41,7 @@ BODY
 		w.WriteHeader(buf.Code)
 	}
 
-	buf.WriteTo(w)
+	buf.Buffer.WriteTo(w)
 }
 
 func (l *logger) Wrap(inner http.Handler) http.Handler {

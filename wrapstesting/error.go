@@ -83,9 +83,7 @@ func (e *errorWrapper) Wrap(next http.Handler) http.Handler {
 			return
 		}
 
-		buf.WriteHeadersTo(w)
-		buf.WriteCodeTo(w)
-		buf.WriteTo(w)
+		buf.WriteAllTo(w)
 	})
 }
 

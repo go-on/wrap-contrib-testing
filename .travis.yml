@@ -9,3 +9,4 @@ install:
   - go get github.com/go-on/wrap-contrib/wraps
   - go get github.com/go-on/method
   - go get launchpad.net/gocheck
+  - go get github.com/go-on/queue

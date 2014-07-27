@@ -2,9 +2,10 @@ package wrapstesting
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/go-on/wrap"
 	"github.com/go-on/wrap-contrib/helper"
-	"net/http"
 )
 
 // ErrorWriter has a method WriteError to write error information to ResponseWriters
@@ -14,6 +15,7 @@ type ErrorWriter interface {
 	WriteError(http.ResponseWriter, *http.Request, error)
 }
 
+/*
 // ErrorResponse captures a response with an error
 type ErrorResponse struct {
 	*helper.ResponseBuffer
@@ -26,6 +28,7 @@ func (e *ErrorResponse) HandleError(in error) (out error) {
 	e.Error = in
 	return in
 }
+*/
 
 // HTTPStatusError is an error that is based on what was written to a http.ResponseWriter
 // any status code >= 400 is considered an error
@@ -37,14 +40,11 @@ type HTTPStatusError struct {
 
 	// Header has the Header of the http.ResponseWriter that was written to
 	Header http.Header
-
-	// Message has the body of the http.ResponseWriter that was written to
-	Message string
 }
 
 // Error fulfills the error interface
 func (h HTTPStatusError) Error() string {
-	return fmt.Sprintf("HTTP Status Error: Code %d, Message: %s", h.Code, h.Message)
+	return fmt.Sprintf("HTTP Status Error: Code %d", h.Code)
 }
 
 // errorWrapper is a github.com/go-on/wrap.Wrapper based on a ErrorWriter
@@ -71,19 +71,18 @@ func NewErrorWrapper(errHandler ErrorWriter) wrap.Wrapper {
 // Wrap fulfills the github.com/go-on/wrap.Wrapper interface.
 func (e *errorWrapper) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		buf := helper.NewResponseBuffer(w)
-		errResp := &ErrorResponse{buf, nil}
-		next.ServeHTTP(errResp, r)
-		if buf.Code >= 400 && errResp.Error == nil {
-			errResp.Error = HTTPStatusError{buf.Code, buf.Header(), buf.Buffer.String()}
-		}
+		checked := helper.NewCheckedResponseWriter(w, func(ck *helper.CheckedResponseWriter) bool {
+			if ck.Code >= 400 {
+				e.WriteError(w, r, HTTPStatusError{ck.Code, ck.Header()})
+				return true
+			}
 
-		if errResp.Error != nil {
-			e.WriteError(w, r, errResp.Error)
-			return
-		}
+			ck.WriteHeadersTo(w)
+			ck.WriteCodeTo(w)
+			return true
+		})
 
-		buf.WriteAllTo(w)
+		next.ServeHTTP(checked, r)
 	})
 }
 

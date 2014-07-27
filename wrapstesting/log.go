@@ -13,14 +13,19 @@ import (
 type logger struct{ *log.Logger }
 
 func (l *logger) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Request) {
+	checked := helper.NewCheckedResponseWriter(w, func(ck *helper.CheckedResponseWriter) bool {
+		ck.WriteHeadersTo(w)
+		ck.WriteCodeTo(w)
+		return true
+	})
 	// l.Logger.Printf("ResponseWriter: %#v\nRequest: %#v\n", w, r)
 	requestHeaders := fmt.Sprintf("%v", r.Header)
 
-	buf := helper.NewResponseBuffer(w)
+	// buf := helper.NewResponseBuffer(w)
 
-	in.ServeHTTP(buf, r)
+	in.ServeHTTP(checked, r)
 
-	if buf.HasChanged() {
+	if checked.HasChanged() {
 		l.Printf(`
 -- REQUEST --
 %s %s
@@ -30,18 +35,9 @@ HEADERS
 STATUS CODE: %d
 HEADERS
 %s
-BODY
-%s
-
-`, r.Method, r.URL.Path, requestHeaders, buf.Code, buf.Header(), string(buf.Buffer.Bytes()))
+`, r.Method, r.URL.Path, requestHeaders, checked.Code, checked.Header())
 	}
 
-	buf.WriteHeadersTo(w)
-	if buf.Code != 0 {
-		w.WriteHeader(buf.Code)
-	}
-
-	buf.Buffer.WriteTo(w)
 }
 
 func (l *logger) Wrap(inner http.Handler) http.Handler {

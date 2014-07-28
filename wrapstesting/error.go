@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/go-on/wrap"
-	"github.com/go-on/wrap-contrib/helper"
 )
 
 // ErrorWriter has a method WriteError to write error information to ResponseWriters
@@ -71,18 +70,31 @@ func NewErrorWrapper(errHandler ErrorWriter) wrap.Wrapper {
 // Wrap fulfills the github.com/go-on/wrap.Wrapper interface.
 func (e *errorWrapper) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		checked := helper.NewCheckedResponseWriter(w, func(ck *helper.CheckedResponseWriter) bool {
+		//checked := helper.NewCheckedResponseWriter(w, func(ck *helper.CheckedResponseWriter) bool {
+		bodywritten := false
+		checked := wrap.NewRWPeek(w, func(ck *wrap.RWPeek) bool {
 			if ck.Code >= 400 {
 				e.WriteError(w, r, HTTPStatusError{ck.Code, ck.Header()})
 				return true
 			}
-
-			ck.WriteHeadersTo(w)
-			ck.WriteCodeTo(w)
+			ck.FlushHeaders()
+			ck.FlushCode()
+			bodywritten = true
+			// ck.WriteHeadersTo(w)
+			// ck.WriteCodeTo(w)
 			return true
 		})
 
 		next.ServeHTTP(checked, r)
+
+		if !bodywritten {
+			if checked.Code >= 400 {
+				e.WriteError(w, r, HTTPStatusError{checked.Code, checked.Header()})
+				return
+			}
+		}
+
+		checked.FlushMissing()
 	})
 }
 

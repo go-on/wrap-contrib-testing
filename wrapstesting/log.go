@@ -7,15 +7,14 @@ import (
 	"os"
 
 	"github.com/go-on/wrap"
-	"github.com/go-on/wrap-contrib/helper"
 )
 
 type logger struct{ *log.Logger }
 
 func (l *logger) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Request) {
-	checked := helper.NewCheckedResponseWriter(w, func(ck *helper.CheckedResponseWriter) bool {
-		ck.WriteHeadersTo(w)
-		ck.WriteCodeTo(w)
+	checked := wrap.NewRWPeek(w, func(ck *wrap.RWPeek) bool {
+		ck.FlushHeaders()
+		ck.FlushCode()
 		return true
 	})
 	// l.Logger.Printf("ResponseWriter: %#v\nRequest: %#v\n", w, r)

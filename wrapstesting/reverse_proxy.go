@@ -27,11 +27,11 @@ func ReverseProxyByUrl(urlbase string) wrap.Wrapper {
 }
 
 // ServeHandle serves the request via the ReverseProxy, ignoring any inner handler
-func (rp *reverseProxy) ServeHandle(inner http.Handler, rw http.ResponseWriter, req *http.Request) {
+func (rp *reverseProxy) ServeHTTPNext(inner http.Handler, rw http.ResponseWriter, req *http.Request) {
 	rp.ServeHTTP(rw, req)
 }
 
 // Wrap wraps the given inner handler with the returned handler
-func (rp *reverseProxy) Wrap(inner http.Handler) http.Handler {
-	return wrap.ServeHandle(rp, inner)
+func (rp *reverseProxy) Wrap(next http.Handler) http.Handler {
+	return wrap.NextHandler(rp).Wrap(next)
 }

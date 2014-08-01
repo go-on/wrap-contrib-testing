@@ -72,7 +72,7 @@ func (e *errorWrapper) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//checked := helper.NewCheckedResponseWriter(w, func(ck *helper.CheckedResponseWriter) bool {
 		bodywritten := false
-		checked := wrap.NewRWPeek(w, func(ck *wrap.RWPeek) bool {
+		checked := wrap.NewPeek(w, func(ck *wrap.Peek) bool {
 			if ck.Code >= 400 {
 				e.WriteError(w, r, HTTPStatusError{ck.Code, ck.Header()})
 				return true

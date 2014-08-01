@@ -11,8 +11,8 @@ import (
 
 type logger struct{ *log.Logger }
 
-func (l *logger) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Request) {
-	checked := wrap.NewRWPeek(w, func(ck *wrap.RWPeek) bool {
+func (l *logger) ServeHTTPNext(in http.Handler, w http.ResponseWriter, r *http.Request) {
+	checked := wrap.NewPeek(w, func(ck *wrap.Peek) bool {
 		ck.FlushHeaders()
 		ck.FlushCode()
 		return true
@@ -39,8 +39,8 @@ HEADERS
 
 }
 
-func (l *logger) Wrap(inner http.Handler) http.Handler {
-	return wrap.ServeHandle(l, inner)
+func (l *logger) Wrap(next http.Handler) http.Handler {
+	return wrap.NextHandler(l).Wrap(next)
 }
 
 func LOGGER(prefix string) wrap.Wrapper {

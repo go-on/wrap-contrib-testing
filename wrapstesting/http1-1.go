@@ -10,7 +10,7 @@ type http1_1 struct{}
 
 var HTTP1_1 = http1_1{}
 
-func (h http1_1) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Request) {
+func (h http1_1) ServeHTTPNext(in http.Handler, w http.ResponseWriter, r *http.Request) {
 	if !r.ProtoAtLeast(1, 1) {
 		// protocol not supported
 		w.WriteHeader(505)
@@ -20,5 +20,5 @@ func (h http1_1) ServeHandle(in http.Handler, w http.ResponseWriter, r *http.Req
 }
 
 func (h http1_1) Wrap(in http.Handler) http.Handler {
-	return wrap.ServeHandle(h, in)
+	return wrap.NextHandler(h).Wrap(in)
 }

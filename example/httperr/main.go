@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-on/queue"
+	"gopkg.in/go-on/queue.v2"
 	"gopkg.in/go-on/wrap.v2"
 	"github.com/go-on/wrap-contrib-testing/wrapstesting"
 	"log"

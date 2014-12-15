@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/go-on/wrap"
-	"github.com/go-on/wrap-contrib/helper"
+	"gopkg.in/go-on/wrap.v2"
+	"gopkg.in/go-on/wrap-contrib.v2/helper"
 )
 
 func anyway(w http.ResponseWriter, r *http.Request) {

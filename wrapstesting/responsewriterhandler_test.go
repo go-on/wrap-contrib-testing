@@ -3,9 +3,9 @@ package wrapstesting
 import (
 	"net/http"
 
-	"github.com/go-on/wrap"
-	"github.com/go-on/wrap-contrib/helper"
-	"github.com/go-on/wrap-contrib/wraps"
+	"gopkg.in/go-on/wrap.v2"
+	"gopkg.in/go-on/wrap-contrib.v2/helper"
+	"gopkg.in/go-on/wrap-contrib.v2/wraps"
 	. "launchpad.net/gocheck"
 )
 

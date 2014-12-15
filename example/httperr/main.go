@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-on/queue"
-	"github.com/go-on/wrap"
+	"gopkg.in/go-on/wrap.v2"
 	"github.com/go-on/wrap-contrib-testing/wrapstesting"
 	"log"
 	"net/http"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"gopkg.in/go-on/queue.v2"
 	"gopkg.in/go-on/wrap.v2"
-	"github.com/go-on/wrap-contrib-testing/wrapstesting"
+	"gopkg.in/go-on/wrap-contrib-testing.v2/wrapstesting"
 	"log"
 	"net/http"
 	"os"
